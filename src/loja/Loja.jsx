@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
+import { Dog, Cat } from '@phosphor-icons/react';
 import { combina } from '../lib/busca';
 import './loja.css';
 
@@ -82,22 +83,6 @@ function temEstoque(p) {
 
 /* --------------------------------------------------------------- icones */
 const Ico = {
-  Cao: (props) => (
-    <svg width={props.s || 42} height={props.s || 42} viewBox="0 0 24 24" fill={props.c || '#111111'} aria-hidden="true">
-      <path d="M6.4 3.9c1.7.2 2.9 1.4 3.4 2.6a7.6 7.6 0 0 1 4.4 0c.5-1.2 1.7-2.4 3.4-2.6.6-.1 1 .3 1 .9v3.4c.7 1.1 1.1 2.4 1.1 3.7 0 4-3.5 7.2-7.7 7.2S4.3 16 4.3 11.9c0-1.3.4-2.6 1.1-3.7V4.8c0-.6.4-1 1-.9z" />
-      <circle cx="9.4" cy="11.4" r="1.15" fill="#FAFAFA" />
-      <circle cx="14.6" cy="11.4" r="1.15" fill="#FAFAFA" />
-      <path d="M12 13.6c1 0 1.6.5 1.6 1.1 0 .8-.8 1.3-1.6 1.3s-1.6-.5-1.6-1.3c0-.6.6-1.1 1.6-1.1z" fill="#FAFAFA" />
-    </svg>
-  ),
-  Gato: (props) => (
-    <svg width={props.s || 42} height={props.s || 42} viewBox="0 0 24 24" fill={props.c || '#111111'} aria-hidden="true">
-      <path d="M4.5 3.9 8.1 8a7.8 7.8 0 0 1 7.8 0l3.6-4.1c.4-.5 1.2-.2 1.2.5v6.7c0 4.2-3 7.6-8.7 7.6S3.3 15.3 3.3 11.1V4.4c0-.7.8-1 1.2-.5z" />
-      <circle cx="9.3" cy="11.2" r="1.15" fill="#FAFAFA" />
-      <circle cx="14.7" cy="11.2" r="1.15" fill="#FAFAFA" />
-      <path d="M12 13.3c.9 0 1.5.5 1.5 1.1 0 .8-.7 1.3-1.5 1.3s-1.5-.5-1.5-1.3c0-.6.6-1.1 1.5-1.1z" fill="#FAFAFA" />
-    </svg>
-  ),
   Saco: ({ c1 = '#9E9E9E', c2 = '#6E6E6E', w = 38, h = 49 }) => (
     <svg width={w} height={h} viewBox="0 0 60 76" aria-hidden="true">
       <path d="M11 4h38l-4 7H15z" fill={c2} />
@@ -1341,10 +1326,12 @@ export default function Loja() {
           <div className="lj-secao-sub">Escolha e a gente já filtra pra você</div>
           <div className="lj-especies">
             <button className="lj-especie" onClick={() => { setEspecie('cao'); setPerfil('todos'); setPorte('todos'); setTela('catalogo'); }}>
-              <Ico.Cao /><span className="lj-ttl">Cachorro</span>
+              <Dog size={54} weight="fill" color="#171717" />
+              <span className="lj-ttl">Cachorro</span>
             </button>
             <button className="lj-especie" onClick={() => { setEspecie('gato'); setPerfil('todos'); setPorte('todos'); setTela('catalogo'); }}>
-              <Ico.Gato /><span className="lj-ttl">Gato</span>
+              <Cat size={54} weight="fill" color="#171717" />
+              <span className="lj-ttl">Gato</span>
             </button>
           </div>
         </div>
