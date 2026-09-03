@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { ProvedorDeAvisos } from './Aviso';
 import Login from './Login';
@@ -9,10 +9,10 @@ import {
 } from 'lucide-react';
 import './admin.css';
 
-const Painel = lazy(() => import('./Painel'));
-const Pedidos = lazy(() => import('./Pedidos'));
-const Produtos = lazy(() => import('./Produtos'));
-const Config = lazy(() => import('./Config'));
+import Painel from './Painel';
+import Pedidos from './Pedidos';
+import Produtos from './Produtos';
+import Config from './Config';
 
 const MENU = [
   { caminho: '/admin', rotulo: 'Painel', icone: LayoutDashboard, exato: true },
@@ -124,15 +124,13 @@ export default function Admin() {
             <Menu size={22} />
           </button>
 
-          <Suspense fallback={<div className="ad-carregando">Carregando…</div>}>
-            <Routes>
+          <Routes>
               <Route path="/admin" element={<Painel />} />
               <Route path="/admin/pedidos" element={<Pedidos />} />
               <Route path="/admin/produtos" element={<Produtos />} />
               <Route path="/admin/config" element={<Config usuario={usuario} />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />
-            </Routes>
-          </Suspense>
+          </Routes>
         </main>
       </div>
     </ProvedorDeAvisos>
