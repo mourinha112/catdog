@@ -7,9 +7,76 @@
     <meta name="theme-color" content="#111111" />
     <meta name="description" content="Cat &amp; Dog Pet Shop — monte seu pedido, escolha o horário e receba em casa." />
     <title>Cat &amp; Dog Pet Shop</title>
+
+    <!--
+      Estilo do aviso de carregamento fica aqui dentro de proposito: se o
+      arquivo de CSS do app nao baixar, esta parte ainda funciona.
+    -->
+    <style>
+      html, body { position: static !important; width: 100% !important; min-width: 100% !important; margin: 0; min-height: 100vh; }
+      #root { display: block; width: 100%; min-height: 100vh; }
+      .booting {
+        min-height: 100vh; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 14px; padding: 24px;
+        font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
+        color: #5A5A5A; text-align: center; background: #E8E8E8;
+      }
+      .booting img { width: 110px; height: auto; }
+      .booting-lento {
+        max-width: 460px; background: #fff; border-radius: 18px;
+        padding: 22px; text-align: left; box-shadow: 0 8px 30px rgba(0,0,0,.12);
+      }
+      .booting-lento h2 { font-size: 1.05rem; color: #171717; margin: 0 0 8px; }
+      .booting-lento p, .booting-lento li { font-size: .88rem; line-height: 1.6; margin: 0 0 8px; }
+      .booting-lento ul { margin: 0 0 12px; padding-left: 20px; }
+      .booting-lento button {
+        width: 100%; min-height: 44px; border: 0; border-radius: 12px;
+        background: #111; color: #fff; font-size: .95rem; font-weight: 700;
+        cursor: pointer; font-family: inherit;
+      }
+      .booting-lento code { background: #F0F0F0; padding: 1px 5px; border-radius: 4px; font-size: .8rem; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Isto some assim que o React monta. Se continuar na tela, e porque o
+        aplicativo nao carregou - e ai a pessoa ve o motivo, em vez de branco.
+      -->
+      <div class="booting">
+        <img src="/logo.png" alt="" />
+        <p>Carregando…</p>
+
+        <div class="booting-lento" id="booting-lento" hidden>
+          <h2>O aplicativo não carregou</h2>
+          <p>
+            A página abriu, mas o arquivo do aplicativo não terminou de baixar.
+            Quase sempre é alguma coisa na rede deste computador bloqueando:
+            antivírus, extensão do navegador ou rede da empresa.
+          </p>
+          <ul>
+            <li>Abra numa <strong>janela anônima</strong></li>
+            <li>Tente por <strong>outra rede</strong> (o 4G do celular, por exemplo)</li>
+            <li>Desative o antivírus ou as extensões e recarregue</li>
+          </ul>
+          <p>
+            Se nada resolver, aperte <code>F12</code>, abra a aba
+            <strong>Console</strong> e mande um print — o erro que aparecer ali
+            diz exatamente o que foi bloqueado.
+          </p>
+          <button onclick="location.reload()">Tentar de novo</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Se depois de 7s a mensagem ainda existir, o React nao montou.
+      setTimeout(function () {
+        var aviso = document.getElementById('booting-lento');
+        if (aviso) aviso.hidden = false;
+      }, 7000);
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
