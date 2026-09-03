@@ -54,7 +54,7 @@ export default function Produtos() {
 
   async function carregar() {
     try {
-      const res = await api.get('/admin/products');
+      const res = await api.get('/painel/products');
       setProdutos(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       aviso.erro('Erro ao carregar os produtos');
@@ -157,8 +157,8 @@ export default function Produtos() {
 
     setSalvando(true);
     try {
-      if (editandoId) await api.put(`/admin/products/${editandoId}`, dados);
-      else await api.post('/admin/products', dados);
+      if (editandoId) await api.put(`/painel/products/${editandoId}`, dados);
+      else await api.post('/painel/products', dados);
       aviso.sucesso(editandoId ? 'Produto atualizado' : 'Produto cadastrado');
       setAberto(false);
       carregar();
@@ -175,7 +175,7 @@ export default function Produtos() {
     const un = parseInt(entrada.un, 10) || 0;
     if (kg <= 0 && un <= 0) { aviso.erro('Informe a quantidade'); return; }
     try {
-      await api.post(`/admin/products/${estoqueDe.id}/estoque`, {
+      await api.post(`/painel/products/${estoqueDe.id}/estoque`, {
         quantidade_kg: kg, quantidade_un: un, motivo: entrada.motivo,
       });
       aviso.sucesso('Estoque atualizado');
@@ -189,7 +189,7 @@ export default function Produtos() {
 
   async function apagar() {
     try {
-      await api.delete(`/admin/products/${apagando.id}`);
+      await api.delete(`/painel/products/${apagando.id}`);
       aviso.sucesso('Produto removido do catálogo');
       setApagando(null);
       carregar();
@@ -202,47 +202,47 @@ export default function Produtos() {
   const semFoto = produtos.filter((p) => !p.foto_url).length;
 
   return (
-    <div className="ad-pagina">
-      <header className="ad-cabecalho">
+    <div className="pn-pagina">
+      <header className="pn-cabecalho">
         <h1>Produtos</h1>
-        <button className="ad-btn ad-btn-primario" onClick={abrirNovo}>
+        <button className="pn-btn pn-btn-primario" onClick={abrirNovo}>
           <Plus size={17} /> Novo produto
         </button>
       </header>
 
-      <div className="ad-barra-busca">
-        <div className="ad-busca">
+      <div className="pn-barra-busca">
+        <div className="pn-busca">
           <Search size={17} />
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou marca…" />
         </div>
-        <label className="ad-marcador">
+        <label className="pn-marcador">
           <input type="checkbox" checked={soSemFoto} onChange={(e) => setSoSemFoto(e.target.checked)} />
           <span>Só sem foto {semFoto > 0 && `(${semFoto})`}</span>
         </label>
       </div>
 
       {carregando ? (
-        <div className="ad-carregando">Carregando…</div>
+        <div className="pn-carregando">Carregando…</div>
       ) : lista.length === 0 ? (
-        <div className="ad-vazio">
+        <div className="pn-vazio">
           {produtos.length === 0 ? 'Nenhum produto cadastrado ainda. Comece pelo botão “Novo produto”.' : 'Nada encontrado com esse filtro.'}
         </div>
       ) : (
-        <div className="ad-grade">
+        <div className="pn-grade">
           {lista.map((p) => (
-            <article className="ad-produto" key={p.id}>
-              <div className="ad-produto-foto">
+            <article className="pn-produto" key={p.id}>
+              <div className="pn-produto-foto">
                 {p.foto_url ? <img src={p.foto_url} alt="" loading="lazy" /> : <ImageOff size={26} />}
-                <span className={`ad-produto-visivel ${p.visivel_loja === false ? 'oculto' : ''}`}
+                <span className={`pn-produto-visivel ${p.visivel_loja === false ? 'oculto' : ''}`}
                   title={p.visivel_loja === false ? 'Escondido do catálogo' : 'Aparece no catálogo'}>
                   {p.visivel_loja === false ? <EyeOff size={13} /> : <Eye size={13} />}
                 </span>
               </div>
 
-              <div className="ad-produto-corpo">
-                <div className="ad-produto-marca">{p.marca || 'sem marca'}</div>
-                <div className="ad-produto-nome">{p.nome}</div>
-                <div className="ad-produto-preco">
+              <div className="pn-produto-corpo">
+                <div className="pn-produto-marca">{p.marca || 'sem marca'}</div>
+                <div className="pn-produto-nome">{p.nome}</div>
+                <div className="pn-produto-preco">
                   {ehRacao(p.categoria) ? (
                     <>
                       {Number(p.preco_saco_fechado) > 0 && <span>{money(p.preco_saco_fechado)} o saco</span>}
@@ -252,20 +252,20 @@ export default function Produtos() {
                     <span>{money(p.preco_unitario)}</span>
                   )}
                 </div>
-                <div className={`ad-produto-estoque ${(Number(p.estoque_kg) > 0 || Number(p.estoque_unidade) > 0) ? '' : 'zerado'}`}>
+                <div className={`pn-produto-estoque ${(Number(p.estoque_kg) > 0 || Number(p.estoque_unidade) > 0) ? '' : 'zerado'}`}>
                   {Number(p.estoque_kg) > 0 ? `${p.estoque_kg} kg`
                     : Number(p.estoque_unidade) > 0 ? `${p.estoque_unidade} un` : 'sem estoque'}
                 </div>
               </div>
 
-              <div className="ad-produto-acoes">
-                <button className="ad-btn ad-btn-claro ad-btn-mini" onClick={() => abrirEdicao(p)} title="Editar">
+              <div className="pn-produto-acoes">
+                <button className="pn-btn pn-btn-claro pn-btn-mini" onClick={() => abrirEdicao(p)} title="Editar">
                   <Pencil size={15} />
                 </button>
-                <button className="ad-btn ad-btn-claro ad-btn-mini" onClick={() => setEstoqueDe(p)} title="Entrada de estoque">
+                <button className="pn-btn pn-btn-claro pn-btn-mini" onClick={() => setEstoqueDe(p)} title="Entrada de estoque">
                   <PackagePlus size={15} />
                 </button>
-                <button className="ad-btn ad-btn-perigo ad-btn-mini" onClick={() => setApagando(p)} title="Remover">
+                <button className="pn-btn pn-btn-perigo pn-btn-mini" onClick={() => setApagando(p)} title="Remover">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -276,28 +276,28 @@ export default function Produtos() {
 
       {/* ---------------- cadastro / edicao ---------------- */}
       {aberto && (
-        <div className="ad-modal-fundo" onClick={() => setAberto(false)}>
-          <form className="ad-modal ad-modal-largo" onClick={(e) => e.stopPropagation()} onSubmit={salvar}>
-            <div className="ad-modal-topo">
+        <div className="pn-modal-fundo" onClick={() => setAberto(false)}>
+          <form className="pn-modal pn-modal-largo" onClick={(e) => e.stopPropagation()} onSubmit={salvar}>
+            <div className="pn-modal-topo">
               <h2>{editandoId ? 'Editar produto' : 'Novo produto'}</h2>
               <button type="button" onClick={() => setAberto(false)}><X size={18} /></button>
             </div>
 
-            <div className="ad-modal-corpo">
-              <div className="ad-foto-campo">
-                <div className="ad-foto-quadro">
+            <div className="pn-modal-corpo">
+              <div className="pn-foto-campo">
+                <div className="pn-foto-quadro">
                   {form.foto_url
                     ? <img src={form.foto_url} alt="" onError={(e) => { e.currentTarget.style.opacity = 0.2; }} />
                     : <ImageOff size={26} />}
                 </div>
-                <div className="ad-foto-lado">
-                  <div className="ad-foto-botoes">
-                    <button type="button" className="ad-btn ad-btn-claro" disabled={enviandoFoto}
+                <div className="pn-foto-lado">
+                  <div className="pn-foto-botoes">
+                    <button type="button" className="pn-btn pn-btn-claro" disabled={enviandoFoto}
                       onClick={() => fotoRef.current?.click()}>
                       <Upload size={15} /> {enviandoFoto ? 'Enviando…' : 'Enviar foto'}
                     </button>
                     {form.foto_url && (
-                      <button type="button" className="ad-btn ad-btn-perigo ad-btn-mini"
+                      <button type="button" className="pn-btn pn-btn-perigo pn-btn-mini"
                         onClick={() => setForm((f) => ({ ...f, foto_url: '' }))}>
                         <Trash2 size={15} />
                       </button>
@@ -309,84 +309,84 @@ export default function Produtos() {
                 <input ref={fotoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={enviarFotoDoProduto} />
               </div>
 
-              <div className="ad-linha">
-                <label className="ad-campo">
+              <div className="pn-linha">
+                <label className="pn-campo">
                   <span>Nome *</span>
                   <input name="nome" value={form.nome} onChange={mudar} placeholder="Ex: Fórmula Filhotes Frango" required />
                 </label>
-                <label className="ad-campo">
+                <label className="pn-campo">
                   <span>Marca</span>
                   <input name="marca" value={form.marca} onChange={mudar} placeholder="Ex: Golden" />
                 </label>
               </div>
 
-              <div className="ad-linha">
-                <label className="ad-campo">
+              <div className="pn-linha">
+                <label className="pn-campo">
                   <span>Categoria</span>
                   <select name="categoria" value={form.categoria} onChange={mudar}>
                     {CATEGORIAS.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
                   </select>
                 </label>
-                <label className="ad-campo">
+                <label className="pn-campo">
                   <span>Custo (opcional)</span>
                   <input name="custo" value={form.custo} onChange={mudar} placeholder="0,00" inputMode="decimal" />
                 </label>
               </div>
 
-              <label className="ad-campo">
+              <label className="pn-campo">
                 <span>Descrição (opcional)</span>
                 <textarea name="descricao" value={form.descricao} onChange={mudar} rows={2}
                   placeholder="Uma linha que ajude o cliente a escolher" />
               </label>
 
-              <div className="ad-divisor"><span>Preço e estoque</span></div>
+              <div className="pn-divisor"><span>Preço e estoque</span></div>
 
               {racaoNoForm ? (
                 <>
-                  <div className="ad-linha">
-                    <label className="ad-campo">
+                  <div className="pn-linha">
+                    <label className="pn-campo">
                       <span>Peso do saco (kg)</span>
                       <input name="peso_saco_kg" value={form.peso_saco_kg} onChange={mudar} placeholder="15" inputMode="decimal" />
                     </label>
-                    <label className="ad-campo">
+                    <label className="pn-campo">
                       <span>Preço do saco fechado</span>
                       <input name="preco_saco_fechado" value={form.preco_saco_fechado} onChange={mudar} placeholder="229,90" inputMode="decimal" />
                     </label>
-                    <label className="ad-campo">
+                    <label className="pn-campo">
                       <span>Preço por kg</span>
                       <input name="preco_por_kg" value={form.preco_por_kg} onChange={mudar} placeholder="17,50" inputMode="decimal" />
                     </label>
                   </div>
-                  <div className="ad-linha">
+                  <div className="pn-linha">
                     {!editandoId && (
-                      <label className="ad-campo">
+                      <label className="pn-campo">
                         <span>Estoque inicial (kg)</span>
                         <input name="estoque_kg" value={form.estoque_kg} onChange={mudar} placeholder="0" inputMode="decimal" />
                       </label>
                     )}
-                    <label className="ad-campo">
+                    <label className="pn-campo">
                       <span>Avisar quando ficar abaixo de (kg)</span>
                       <input name="estoque_minimo" value={form.estoque_minimo} onChange={mudar} placeholder="0" inputMode="decimal" />
                     </label>
                   </div>
-                  <label className="ad-marcador">
+                  <label className="pn-marcador">
                     <input type="checkbox" name="vende_fracionado" checked={!!form.vende_fracionado} onChange={mudar} />
                     <span>Pode ser vendido fracionado por kg</span>
                   </label>
                 </>
               ) : (
-                <div className="ad-linha">
-                  <label className="ad-campo">
+                <div className="pn-linha">
+                  <label className="pn-campo">
                     <span>Preço unitário *</span>
                     <input name="preco_unitario" value={form.preco_unitario} onChange={mudar} placeholder="18,90" inputMode="decimal" />
                   </label>
                   {!editandoId && (
-                    <label className="ad-campo">
+                    <label className="pn-campo">
                       <span>Estoque inicial (unidades)</span>
                       <input name="estoque_unidade" value={form.estoque_unidade} onChange={mudar} placeholder="0" inputMode="numeric" />
                     </label>
                   )}
-                  <label className="ad-campo">
+                  <label className="pn-campo">
                     <span>Avisar abaixo de (un)</span>
                     <input name="estoque_minimo" value={form.estoque_minimo} onChange={mudar} placeholder="0" inputMode="numeric" />
                   </label>
@@ -394,34 +394,34 @@ export default function Produtos() {
               )}
 
               {editandoId && (
-                <p className="ad-dica">
+                <p className="pn-dica">
                   O estoque não se edita aqui: use a <strong>entrada de estoque</strong> na lista,
                   que guarda o histórico do que entrou.
                 </p>
               )}
 
-              <div className="ad-divisor"><span>Como aparece no catálogo</span></div>
+              <div className="pn-divisor"><span>Como aparece no catálogo</span></div>
 
-              <label className="ad-marcador">
+              <label className="pn-marcador">
                 <input type="checkbox" name="visivel_loja" checked={!!form.visivel_loja} onChange={mudar} />
                 <span>Aparece no catálogo para o cliente</span>
               </label>
 
-              <div className="ad-linha">
-                <label className="ad-campo">
+              <div className="pn-linha">
+                <label className="pn-campo">
                   <span>Espécie</span>
                   <select name="especie" value={form.especie} onChange={mudar}>
                     {ESPECIES.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
                   </select>
                 </label>
-                <label className="ad-campo">
+                <label className="pn-campo">
                   <span>Fase / condição</span>
                   <select name="perfil" value={form.perfil} onChange={mudar}>
                     {PERFIS.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
                   </select>
                 </label>
                 {form.especie === 'cao' && (
-                  <label className="ad-campo">
+                  <label className="pn-campo">
                     <span>Porte do cão</span>
                     <select name="porte" value={form.porte} onChange={mudar}>
                       {PORTES.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
@@ -429,15 +429,15 @@ export default function Produtos() {
                   </label>
                 )}
               </div>
-              <p className="ad-dica">
+              <p className="pn-dica">
                 Esses três campos são o que faz os filtros do catálogo e os recortes do
                 painel funcionarem. Vale preencher pelo menos nos produtos que mais vendem.
               </p>
             </div>
 
-            <div className="ad-modal-acoes">
-              <button type="button" className="ad-btn ad-btn-claro" onClick={() => setAberto(false)}>Cancelar</button>
-              <button type="submit" className="ad-btn ad-btn-primario" disabled={salvando}>
+            <div className="pn-modal-acoes">
+              <button type="button" className="pn-btn pn-btn-claro" onClick={() => setAberto(false)}>Cancelar</button>
+              <button type="submit" className="pn-btn pn-btn-primario" disabled={salvando}>
                 {salvando ? 'Salvando…' : editandoId ? 'Salvar' : 'Cadastrar'}
               </button>
             </div>
@@ -447,36 +447,36 @@ export default function Produtos() {
 
       {/* ---------------- entrada de estoque ---------------- */}
       {estoqueDe && (
-        <div className="ad-modal-fundo" onClick={() => setEstoqueDe(null)}>
-          <form className="ad-modal" onClick={(e) => e.stopPropagation()} onSubmit={darEntrada}>
-            <div className="ad-modal-topo">
+        <div className="pn-modal-fundo" onClick={() => setEstoqueDe(null)}>
+          <form className="pn-modal" onClick={(e) => e.stopPropagation()} onSubmit={darEntrada}>
+            <div className="pn-modal-topo">
               <h2>Entrada de estoque</h2>
               <button type="button" onClick={() => setEstoqueDe(null)}><X size={18} /></button>
             </div>
-            <p className="ad-modal-texto">
+            <p className="pn-modal-texto">
               <strong>{estoqueDe.marca} {estoqueDe.nome}</strong><br />
               Hoje: {Number(estoqueDe.estoque_kg) > 0 ? `${estoqueDe.estoque_kg} kg` : `${estoqueDe.estoque_unidade} un`}
             </p>
             {ehRacao(estoqueDe.categoria) ? (
-              <label className="ad-campo">
+              <label className="pn-campo">
                 <span>Quantos kg entraram?</span>
                 <input value={entrada.kg} onChange={(e) => setEntrada({ ...entrada, kg: e.target.value })}
                   placeholder="Ex: 45" inputMode="decimal" autoFocus />
               </label>
             ) : (
-              <label className="ad-campo">
+              <label className="pn-campo">
                 <span>Quantas unidades entraram?</span>
                 <input value={entrada.un} onChange={(e) => setEntrada({ ...entrada, un: e.target.value })}
                   placeholder="Ex: 12" inputMode="numeric" autoFocus />
               </label>
             )}
-            <label className="ad-campo">
+            <label className="pn-campo">
               <span>Motivo</span>
               <input value={entrada.motivo} onChange={(e) => setEntrada({ ...entrada, motivo: e.target.value })} />
             </label>
-            <div className="ad-modal-acoes">
-              <button type="button" className="ad-btn ad-btn-claro" onClick={() => setEstoqueDe(null)}>Cancelar</button>
-              <button type="submit" className="ad-btn ad-btn-primario">Lançar entrada</button>
+            <div className="pn-modal-acoes">
+              <button type="button" className="pn-btn pn-btn-claro" onClick={() => setEstoqueDe(null)}>Cancelar</button>
+              <button type="submit" className="pn-btn pn-btn-primario">Lançar entrada</button>
             </div>
           </form>
         </div>
@@ -484,19 +484,19 @@ export default function Produtos() {
 
       {/* ---------------- remocao ---------------- */}
       {apagando && (
-        <div className="ad-modal-fundo" onClick={() => setApagando(null)}>
-          <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ad-modal-topo">
+        <div className="pn-modal-fundo" onClick={() => setApagando(null)}>
+          <div className="pn-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pn-modal-topo">
               <h2>Remover do catálogo?</h2>
               <button onClick={() => setApagando(null)}><X size={18} /></button>
             </div>
-            <p className="ad-modal-texto">
+            <p className="pn-modal-texto">
               <strong>{apagando.marca} {apagando.nome}</strong> some do catálogo e do cadastro.
               Os pedidos antigos que tinham esse produto continuam intactos.
             </p>
-            <div className="ad-modal-acoes">
-              <button className="ad-btn ad-btn-claro" onClick={() => setApagando(null)}>Voltar</button>
-              <button className="ad-btn ad-btn-perigo" onClick={apagar}>Remover</button>
+            <div className="pn-modal-acoes">
+              <button className="pn-btn pn-btn-claro" onClick={() => setApagando(null)}>Voltar</button>
+              <button className="pn-btn pn-btn-perigo" onClick={apagar}>Remover</button>
             </div>
           </div>
         </div>

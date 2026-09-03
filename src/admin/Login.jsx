@@ -46,34 +46,34 @@ export default function Login({ aoEntrar }) {
     }
   }
 
-  if (primeiroAcesso === null) return <div className="ad-login" />;
+  if (primeiroAcesso === null) return <div className="pn-login" />;
 
   return (
-    <div className="ad-login">
-      <form className="ad-login-cartao" onSubmit={enviar}>
-        <img src="/logo.png" alt="" className="ad-login-logo" />
+    <div className="pn-login">
+      <form className="pn-login-cartao" onSubmit={enviar}>
+        <img src="/logo.png" alt="" className="pn-login-logo" />
         <h1>{primeiroAcesso ? 'Primeiro acesso' : 'Painel do catálogo'}</h1>
-        <p className="ad-login-sub">
+        <p className="pn-login-sub">
           {primeiroAcesso
             ? 'Crie o usuário dono do painel. Essa tela só aparece uma vez.'
             : 'Entre para ver os pedidos e cuidar do catálogo.'}
         </p>
 
-        {erro && <div className="ad-login-erro">{erro}</div>}
+        {erro && <div className="pn-login-erro">{erro}</div>}
 
         {primeiroAcesso && (
-          <label className="ad-campo">
+          <label className="pn-campo">
             <span>Seu nome</span>
             <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Como quer ser chamado" autoComplete="name" />
           </label>
         )}
 
-        <label className="ad-campo">
+        <label className="pn-campo">
           <span>Login</span>
           <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="seu usuário" autoComplete="username" autoFocus />
         </label>
 
-        <label className="ad-campo">
+        <label className="pn-campo">
           <span>Senha</span>
           <input
             type="password" value={senha} onChange={(e) => setSenha(e.target.value)}
@@ -82,8 +82,8 @@ export default function Login({ aoEntrar }) {
           />
         </label>
 
-        <button className="ad-btn ad-btn-primario ad-btn-largo" type="submit" disabled={enviando}>
-          {enviando ? <Loader2 size={18} className="ad-girando" />
+        <button className="pn-btn pn-btn-primario pn-btn-largo" type="submit" disabled={enviando}>
+          {enviando ? <Loader2 size={18} className="pn-girando" />
             : primeiroAcesso ? <UserPlus size={18} /> : <LogIn size={18} />}
           {enviando ? 'Entrando…' : primeiroAcesso ? 'Criar e entrar' : 'Entrar'}
         </button>

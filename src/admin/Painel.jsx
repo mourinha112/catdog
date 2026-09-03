@@ -53,8 +53,8 @@ export default function Painel() {
     try {
       const params = new URLSearchParams({ dias, especie, porte, perfil });
       const [r1, r2] = await Promise.all([
-        api.get('/admin/resumo'),
-        api.get(`/admin/ranking?${params.toString()}`),
+        api.get('/painel/resumo'),
+        api.get(`/painel/ranking?${params.toString()}`),
       ]);
       setResumo(r1.data);
       setRanking(r2.data);
@@ -72,20 +72,20 @@ export default function Painel() {
   const temRecorte = especie !== 'todos' || porte !== 'todos' || perfil !== 'todos';
 
   return (
-    <div className="ad-pagina">
-      <header className="ad-cabecalho">
+    <div className="pn-pagina">
+      <header className="pn-cabecalho">
         <h1>Painel</h1>
-        <button className="ad-btn ad-btn-claro" onClick={carregar}>
+        <button className="pn-btn pn-btn-claro" onClick={carregar}>
           <RefreshCw size={16} /> Atualizar
         </button>
       </header>
 
       {resumo && (
-        <div className="ad-cartoes">
-          <div className="ad-cartao destaque">
-            <div className="ad-cartao-icone"><TrendingUp size={19} /></div>
+        <div className="pn-cartoes">
+          <div className="pn-cartao destaque">
+            <div className="pn-cartao-icone"><TrendingUp size={19} /></div>
             <div>
-              <span className="ad-cartao-rotulo">Vendido hoje</span>
+              <span className="pn-cartao-rotulo">Vendido hoje</span>
               <strong>{money(resumo.hoje.produtos)}</strong>
               <small>
                 {resumo.hoje.pedidos} pedido{resumo.hoje.pedidos === 1 ? '' : 's'}
@@ -94,28 +94,28 @@ export default function Painel() {
             </div>
           </div>
 
-          <div className="ad-cartao">
-            <div className="ad-cartao-icone"><ShoppingBag size={19} /></div>
+          <div className="pn-cartao">
+            <div className="pn-cartao-icone"><ShoppingBag size={19} /></div>
             <div>
-              <span className="ad-cartao-rotulo">No mês</span>
+              <span className="pn-cartao-rotulo">No mês</span>
               <strong>{money(resumo.mes.produtos)}</strong>
               <small>{resumo.mes.pedidos} pedidos · ticket {money(resumo.ticket_medio_mes)}</small>
             </div>
           </div>
 
-          <div className="ad-cartao">
-            <div className="ad-cartao-icone alerta"><Hourglass size={19} /></div>
+          <div className="pn-cartao">
+            <div className="pn-cartao-icone alerta"><Hourglass size={19} /></div>
             <div>
-              <span className="ad-cartao-rotulo">Esperando você</span>
+              <span className="pn-cartao-rotulo">Esperando você</span>
               <strong>{resumo.aguardando}</strong>
               <small>{resumo.aguardando === 0 ? 'nada na fila' : 'para confirmar'}</small>
             </div>
           </div>
 
-          <div className="ad-cartao">
-            <div className="ad-cartao-icone neutro"><Ban size={19} /></div>
+          <div className="pn-cartao">
+            <div className="pn-cartao-icone neutro"><Ban size={19} /></div>
             <div>
-              <span className="ad-cartao-rotulo">Cancelados no mês</span>
+              <span className="pn-cartao-rotulo">Cancelados no mês</span>
               <strong>{resumo.cancelados_mes}</strong>
               <small>
                 {resumo.mes.pedidos + resumo.cancelados_mes > 0
@@ -125,19 +125,19 @@ export default function Painel() {
             </div>
           </div>
 
-          <div className="ad-cartao">
-            <div className="ad-cartao-icone neutro"><Users size={19} /></div>
+          <div className="pn-cartao">
+            <div className="pn-cartao-icone neutro"><Users size={19} /></div>
             <div>
-              <span className="ad-cartao-rotulo">Clientes</span>
+              <span className="pn-cartao-rotulo">Clientes</span>
               <strong>{resumo.clientes}</strong>
               <small>cadastrados pelo primeiro pedido</small>
             </div>
           </div>
 
-          <div className="ad-cartao">
-            <div className="ad-cartao-icone neutro"><Package size={19} /></div>
+          <div className="pn-cartao">
+            <div className="pn-cartao-icone neutro"><Package size={19} /></div>
             <div>
-              <span className="ad-cartao-rotulo">Produtos ativos</span>
+              <span className="pn-cartao-rotulo">Produtos ativos</span>
               <strong>{resumo.produtos}</strong>
               <small>no cadastro</small>
             </div>
@@ -145,33 +145,33 @@ export default function Painel() {
         </div>
       )}
 
-      <section className="ad-secao">
+      <section className="pn-secao">
         <h2>O que mais vendeu</h2>
-        <p className="ad-secao-sub">
+        <p className="pn-secao-sub">
           Escolha o período e o recorte para decidir a próxima promoção ou o próximo post.
         </p>
 
-        <div className="ad-filtros">
-          <div className="ad-filtro">
-            <span className="ad-filtro-rotulo">Período</span>
-            <div className="ad-chips">
+        <div className="pn-filtros">
+          <div className="pn-filtro">
+            <span className="pn-filtro-rotulo">Período</span>
+            <div className="pn-chips">
               {PERIODOS.map((p) => (
                 <button
                   key={p.dias}
-                  className={`ad-chip ${dias === p.dias ? 'ativo' : ''}`}
+                  className={`pn-chip ${dias === p.dias ? 'ativo' : ''}`}
                   onClick={() => setDias(p.dias)}
                 >{p.rotulo}</button>
               ))}
             </div>
           </div>
 
-          <div className="ad-filtro">
-            <span className="ad-filtro-rotulo">Espécie</span>
-            <div className="ad-chips">
+          <div className="pn-filtro">
+            <span className="pn-filtro-rotulo">Espécie</span>
+            <div className="pn-chips">
               {ESPECIES.map(([v, r]) => (
                 <button
                   key={v}
-                  className={`ad-chip ${especie === v ? 'ativo' : ''}`}
+                  className={`pn-chip ${especie === v ? 'ativo' : ''}`}
                   onClick={() => { setEspecie(v); if (v !== 'cao') setPorte('todos'); }}
                 >{r}</button>
               ))}
@@ -179,28 +179,28 @@ export default function Painel() {
           </div>
 
           {especie === 'cao' && (
-            <div className="ad-filtro">
-              <span className="ad-filtro-rotulo">Porte do cão</span>
-              <div className="ad-chips">
+            <div className="pn-filtro">
+              <span className="pn-filtro-rotulo">Porte do cão</span>
+              <div className="pn-chips">
                 {PORTES.map(([v, r]) => (
-                  <button key={v} className={`ad-chip ${porte === v ? 'ativo' : ''}`} onClick={() => setPorte(v)}>{r}</button>
+                  <button key={v} className={`pn-chip ${porte === v ? 'ativo' : ''}`} onClick={() => setPorte(v)}>{r}</button>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="ad-filtro">
-            <span className="ad-filtro-rotulo">Fase / condição</span>
-            <div className="ad-chips">
+          <div className="pn-filtro">
+            <span className="pn-filtro-rotulo">Fase / condição</span>
+            <div className="pn-chips">
               {PERFIS.map(([v, r]) => (
-                <button key={v} className={`ad-chip ${perfil === v ? 'ativo' : ''}`} onClick={() => setPerfil(v)}>{r}</button>
+                <button key={v} className={`pn-chip ${perfil === v ? 'ativo' : ''}`} onClick={() => setPerfil(v)}>{r}</button>
               ))}
             </div>
           </div>
         </div>
 
         {ranking && ranking.sem_classificacao > 0 && (
-          <div className="ad-alerta">
+          <div className="pn-alerta">
             <AlertTriangle size={18} />
             <div>
               <strong>{ranking.sem_classificacao} produto(s) vendidos não têm espécie definida</strong> e
@@ -211,36 +211,36 @@ export default function Painel() {
         )}
 
         {carregando ? (
-          <div className="ad-carregando">Carregando…</div>
+          <div className="pn-carregando">Carregando…</div>
         ) : lista.length === 0 ? (
-          <div className="ad-vazio">
+          <div className="pn-vazio">
             Nada vendido {temRecorte ? 'com esse recorte — tente afrouxar os filtros' : `nos últimos ${dias} dias`}.
           </div>
         ) : (
           <>
-            <div className="ad-resumo-linha">
+            <div className="pn-resumo-linha">
               <span><strong>{money(ranking.total.faturamento)}</strong> no recorte</span>
               <span>{ranking.total.produtos} produtos · {ranking.periodo.pedidos} pedidos no período</span>
             </div>
 
-            <div className="ad-ranking">
+            <div className="pn-ranking">
               {lista.map((l, i) => (
-                <div className="ad-item" key={l.id}>
-                  <div className={`ad-pos p${i + 1}`}>{i + 1}</div>
-                  <div className="ad-item-info">
-                    <div className="ad-item-marca">{l.marca || 'sem marca'}</div>
-                    <div className="ad-item-nome">{l.nome}</div>
-                    {etiquetas(l) && <div className="ad-item-tags">{etiquetas(l)}</div>}
-                    <div className="ad-barra">
+                <div className="pn-item" key={l.id}>
+                  <div className={`pn-pos p${i + 1}`}>{i + 1}</div>
+                  <div className="pn-item-info">
+                    <div className="pn-item-marca">{l.marca || 'sem marca'}</div>
+                    <div className="pn-item-nome">{l.nome}</div>
+                    {etiquetas(l) && <div className="pn-item-tags">{etiquetas(l)}</div>}
+                    <div className="pn-barra">
                       <i style={{ width: `${maior > 0 ? (l.faturamento / maior) * 100 : 0}%` }} />
                     </div>
                   </div>
-                  <div className="ad-item-numeros">
-                    <div className="ad-item-fat">{money(l.faturamento)}</div>
-                    <div className="ad-item-detalhe">
+                  <div className="pn-item-numeros">
+                    <div className="pn-item-fat">{money(l.faturamento)}</div>
+                    <div className="pn-item-detalhe">
                       {l.vezes}x · {l.quilos > 0 ? `${l.quilos} kg · ` : ''}{l.participacao}%
                     </div>
-                    <div className={`ad-item-estoque ${l.estoque_kg > 0 || l.estoque_unidade > 0 ? '' : 'zerado'}`}>
+                    <div className={`pn-item-estoque ${l.estoque_kg > 0 || l.estoque_unidade > 0 ? '' : 'zerado'}`}>
                       {l.estoque_kg > 0 ? `${l.estoque_kg} kg` : l.estoque_unidade > 0 ? `${l.estoque_unidade} un` : 'sem estoque'}
                     </div>
                   </div>

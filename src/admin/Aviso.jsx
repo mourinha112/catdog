@@ -32,9 +32,9 @@ export function ProvedorDeAvisos({ children }) {
   return (
     <Contexto.Provider value={valor}>
       {children}
-      <div className="ad-avisos">
+      <div className="pn-avisos">
         {avisos.map((a) => (
-          <div key={a.id} className={`ad-aviso ${a.tipo}`}>
+          <div key={a.id} className={`pn-aviso ${a.tipo}`}>
             {a.tipo === 'sucesso' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
             <span>{a.texto}</span>
             <button onClick={() => remover(a.id)} aria-label="Fechar"><X size={15} /></button>

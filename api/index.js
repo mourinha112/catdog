@@ -110,8 +110,8 @@ export default async function handler(req, res) {
     });
   }
 
-  // Tudo que comeca com /api/admin exige estar logado.
-  const precisaLogin = url.startsWith('/api/admin');
+  // Tudo que comeca com /api/painel exige estar logado.
+  const precisaLogin = url.startsWith('/api/painel');
   const usuario = precisaLogin ? lerToken(req) : null;
   if (precisaLogin && !usuario) {
     return res.status(401).json({ error: 'Sessao expirada. Entre de novo.' });
@@ -164,13 +164,13 @@ export default async function handler(req, res) {
       });
     }
 
-    if (url === '/api/admin/users' && metodo === 'GET') {
+    if (url === '/api/painel/users' && metodo === 'GET') {
       const { data } = await supabase
         .from('users').select('id, nome, login, role, ativo, created_at').order('id');
       return res.json(data || []);
     }
 
-    if (url === '/api/admin/users' && metodo === 'POST') {
+    if (url === '/api/painel/users' && metodo === 'POST') {
       const { nome, login, senha, role } = corpo(req);
       if (!login || String(senha || '').length < 6) {
         return res.status(400).json({ error: 'Informe o login e uma senha de pelo menos 6 caracteres' });
@@ -439,7 +439,7 @@ export default async function handler(req, res) {
     /* ================================================================
        PAINEL - PEDIDOS
        ================================================================ */
-    if (url.startsWith('/api/admin/orders') && metodo === 'GET' && !url.match(/\/\d+$/) && !url.includes('resumo')) {
+    if (url.startsWith('/api/painel/orders') && metodo === 'GET' && !url.match(/\/\d+$/) && !url.includes('resumo')) {
       const q = busca(bruto);
       let consulta = supabase
         .from('orders').select('*, order_items(*)')
@@ -519,7 +519,7 @@ export default async function handler(req, res) {
     /* ================================================================
        PAINEL - METRICAS
        ================================================================ */
-    if (url.startsWith('/api/admin/resumo') && metodo === 'GET') {
+    if (url.startsWith('/api/painel/resumo') && metodo === 'GET') {
       const agora = new Date();
       const inicioDia = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).toISOString();
       const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
@@ -574,7 +574,7 @@ export default async function handler(req, res) {
     }
 
     // Ranking por periodo e por segmento de pet
-    if (url.startsWith('/api/admin/ranking') && metodo === 'GET') {
+    if (url.startsWith('/api/painel/ranking') && metodo === 'GET') {
       const q = busca(bruto);
       const dias = Math.min(365, Math.max(1, parseInt(q.dias, 10) || 7));
       const inicio = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
@@ -649,14 +649,14 @@ export default async function handler(req, res) {
     /* ================================================================
        PAINEL - PRODUTOS
        ================================================================ */
-    if (url === '/api/admin/products' && metodo === 'GET') {
+    if (url === '/api/painel/products' && metodo === 'GET') {
       const { data, error } = await supabase
         .from('products').select('*').eq('ativo', 1).order('nome');
       if (error) throw error;
       return res.json(data || []);
     }
 
-    if (url === '/api/admin/products' && metodo === 'POST') {
+    if (url === '/api/painel/products' && metodo === 'POST') {
       const dados = corpo(req);
       if (!String(dados.nome || '').trim()) return res.status(400).json({ error: 'Informe o nome' });
       const { data, error } = await supabase.from('products').insert([dados]).select();
@@ -718,21 +718,21 @@ export default async function handler(req, res) {
     /* ================================================================
        PAINEL - CLIENTES E CONFIGURACOES
        ================================================================ */
-    if (url === '/api/admin/clients' && metodo === 'GET') {
+    if (url === '/api/painel/clients' && metodo === 'GET') {
       const { data, error } = await supabase.from('clients')
         .select('*').order('ultimo_pedido', { ascending: false, nullsFirst: false }).limit(500);
       if (error) throw error;
       return res.json(data || []);
     }
 
-    if (url === '/api/admin/settings' && metodo === 'GET') {
+    if (url === '/api/painel/settings' && metodo === 'GET') {
       const { data } = await supabase.from('settings').select('*');
       const obj = {};
       for (const linha of data || []) obj[linha.key] = linha.value;
       return res.json(obj);
     }
 
-    if (url === '/api/admin/settings' && metodo === 'PUT') {
+    if (url === '/api/painel/settings' && metodo === 'PUT') {
       for (const [key, value] of Object.entries(corpo(req) || {})) {
         await supabase.from('settings').upsert({ key, value: String(value ?? '') }, { onConflict: 'key' });
       }

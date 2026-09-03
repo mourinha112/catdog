@@ -47,7 +47,7 @@ export default function Admin({ base = '/painel' }) {
   // Pedido novo aparece como bolinha no menu, sem precisar recarregar.
   useEffect(() => {
     if (!usuario) return undefined;
-    const buscar = () => api.get('/admin/orders?status=novo')
+    const buscar = () => api.get('/painel/orders?status=novo')
       .then((r) => setPedidosNovos(Array.isArray(r.data) ? r.data.length : 0))
       .catch(() => {});
     buscar();
@@ -56,11 +56,11 @@ export default function Admin({ base = '/painel' }) {
   }, [usuario]);
 
   useEffect(() => {
-    document.body.classList.add('ad-body');
+    document.body.classList.add('pn-body');
     // Ver o comentario no topo do admin.css: garante que nada de fora
     // tire o body do fluxo e faca a pagina sumir no desktop.
     document.body.style.setProperty('position', 'static', 'important');
-    return () => document.body.classList.remove('ad-body');
+    return () => document.body.classList.remove('pn-body');
   }, []);
 
   function sair() {
@@ -81,43 +81,43 @@ export default function Admin({ base = '/painel' }) {
 
   return (
     <ProvedorDeAvisos>
-      <div className="ad-layout">
-        <aside className={`ad-menu ${menuAberto ? 'aberto' : ''}`}>
-          <div className="ad-marca">
+      <div className="pn-layout">
+        <aside className={`pn-menu ${menuAberto ? 'aberto' : ''}`}>
+          <div className="pn-marca">
             <img src="/logo.png" alt="" />
             <div>
               <strong>Painel</strong>
               <span>Catálogo digital</span>
             </div>
-            <button className="ad-menu-fechar" onClick={() => setMenuAberto(false)} aria-label="Fechar menu">
+            <button className="pn-menu-fechar" onClick={() => setMenuAberto(false)} aria-label="Fechar menu">
               <X size={22} />
             </button>
           </div>
 
-          <nav className="ad-nav" onClick={() => setMenuAberto(false)}>
+          <nav className="pn-nav" onClick={() => setMenuAberto(false)}>
             {MENU.map((item) => (
               <NavLink
                 key={item.sufixo}
                 to={base + item.sufixo}
                 end={item.exato}
-                className={({ isActive }) => `ad-link ${isActive ? 'ativo' : ''}`}
+                className={({ isActive }) => `pn-link ${isActive ? 'ativo' : ''}`}
               >
-                <span className="ad-link-icone"><item.icone size={19} /></span>
-                <span className="ad-link-texto">{item.rotulo}</span>
+                <span className="pn-link-icone"><item.icone size={19} /></span>
+                <span className="pn-link-texto">{item.rotulo}</span>
                 {item.sufixo === '/pedidos' && pedidosNovos > 0 && (
-                  <span className="ad-link-bolinha">{pedidosNovos}</span>
+                  <span className="pn-link-bolinha">{pedidosNovos}</span>
                 )}
               </NavLink>
             ))}
           </nav>
 
-          <a className="ad-ver-loja" href="/" target="_blank" rel="noopener noreferrer">
+          <a className="pn-ver-loja" href="/" target="_blank" rel="noopener noreferrer">
             <ExternalLink size={16} /> Ver o catálogo
           </a>
 
-          <div className="ad-usuario">
-            <div className="ad-usuario-foto"><User size={17} /></div>
-            <div className="ad-usuario-texto">
+          <div className="pn-usuario">
+            <div className="pn-usuario-foto"><User size={17} /></div>
+            <div className="pn-usuario-texto">
               <strong>{usuario.nome}</strong>
               <span>{usuario.role}</span>
             </div>
@@ -125,10 +125,10 @@ export default function Admin({ base = '/painel' }) {
           </div>
         </aside>
 
-        {menuAberto && <div className="ad-fundo" onClick={() => setMenuAberto(false)} />}
+        {menuAberto && <div className="pn-fundo" onClick={() => setMenuAberto(false)} />}
 
-        <main className="ad-conteudo">
-          <button className="ad-menu-abrir" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">
+        <main className="pn-conteudo">
+          <button className="pn-menu-abrir" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">
             <Menu size={22} />
           </button>
 

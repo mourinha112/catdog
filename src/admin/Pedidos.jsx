@@ -65,7 +65,7 @@ export default function Pedidos() {
   const carregar = useCallback(async (silencioso) => {
     if (!silencioso) setCarregando(true);
     try {
-      const res = await api.get(`/admin/orders?status=${filtro}`);
+      const res = await api.get(`/painel/orders?status=${filtro}`);
       setPedidos(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       if (!silencioso) aviso.erro('Erro ao carregar os pedidos');
@@ -86,7 +86,7 @@ export default function Pedidos() {
     const pedido = confirmando;
     setOcupado(pedido.id);
     try {
-      await api.post(`/admin/orders/${pedido.id}/confirmar`, { forma_pagamento: pagamento });
+      await api.post(`/painel/orders/${pedido.id}/confirmar`, { forma_pagamento: pagamento });
       aviso.sucesso(`Pedido #${pedido.id} confirmado e estoque baixado`);
       setConfirmando(null);
       carregar(true);
@@ -100,7 +100,7 @@ export default function Pedidos() {
   async function mudarStatus(pedido, status) {
     setOcupado(pedido.id);
     try {
-      await api.put(`/admin/orders/${pedido.id}/status`, { status });
+      await api.put(`/painel/orders/${pedido.id}/status`, { status });
       carregar(true);
     } catch (err) {
       aviso.erro(err.response?.data?.error || 'Não foi possível atualizar');
@@ -126,67 +126,67 @@ export default function Pedidos() {
   const novos = pedidos.filter((p) => p.status === 'novo').length;
 
   return (
-    <div className="ad-pagina">
-      <header className="ad-cabecalho">
+    <div className="pn-pagina">
+      <header className="pn-cabecalho">
         <h1>
           Pedidos
-          {filtro === 'novo' && novos > 0 && <span className="ad-contador">{novos}</span>}
+          {filtro === 'novo' && novos > 0 && <span className="pn-contador">{novos}</span>}
         </h1>
-        <button className="ad-btn ad-btn-claro" onClick={() => carregar()}>
+        <button className="pn-btn pn-btn-claro" onClick={() => carregar()}>
           <RefreshCw size={16} /> Atualizar
         </button>
       </header>
 
-      <div className="ad-chips ad-chips-larga">
+      <div className="pn-chips pn-chips-larga">
         {FILTROS.map(([v, r]) => (
-          <button key={v} className={`ad-chip ${filtro === v ? 'ativo' : ''}`} onClick={() => setFiltro(v)}>{r}</button>
+          <button key={v} className={`pn-chip ${filtro === v ? 'ativo' : ''}`} onClick={() => setFiltro(v)}>{r}</button>
         ))}
       </div>
 
       {carregando ? (
-        <div className="ad-carregando">Carregando…</div>
+        <div className="pn-carregando">Carregando…</div>
       ) : pedidos.length === 0 ? (
-        <div className="ad-vazio">Nenhum pedido nesse filtro.</div>
+        <div className="pn-vazio">Nenhum pedido nesse filtro.</div>
       ) : (
-        <div className="ad-pedidos">
+        <div className="pn-pedidos">
           {pedidos.map((p) => {
             const info = STATUS[p.status] || STATUS.novo;
             const proximo = PROXIMO[p.status];
             const travado = ocupado === p.id;
 
             return (
-              <article className="ad-pedido" key={p.id}>
-                <div className="ad-pedido-topo">
+              <article className="pn-pedido" key={p.id}>
+                <div className="pn-pedido-topo">
                   <div>
-                    <div className="ad-pedido-num">Pedido #{p.id}</div>
-                    <div className="ad-pedido-hora"><Clock size={12} /> {quando(p.created_at)}</div>
+                    <div className="pn-pedido-num">Pedido #{p.id}</div>
+                    <div className="pn-pedido-hora"><Clock size={12} /> {quando(p.created_at)}</div>
                   </div>
-                  <span className="ad-selo" style={{ color: info.cor, background: info.fundo }}>{info.rotulo}</span>
+                  <span className="pn-selo" style={{ color: info.cor, background: info.fundo }}>{info.rotulo}</span>
                 </div>
 
-                <div className="ad-pedido-cliente">
+                <div className="pn-pedido-cliente">
                   <strong>{p.cliente_nome}</strong>
-                  <button className="ad-zap" onClick={() => abrirWhatsApp(p)}>
+                  <button className="pn-zap" onClick={() => abrirWhatsApp(p)}>
                     <Phone size={13} /> {telefone(p.cliente_whatsapp)}
                   </button>
                 </div>
 
-                <div className="ad-pedido-entrega">
+                <div className="pn-pedido-entrega">
                   {p.tipo_entrega === 'entrega' ? <Truck size={16} /> : <Store size={16} />}
                   <div>
-                    <div className="ad-pedido-entrega-tit">
+                    <div className="pn-pedido-entrega-tit">
                       {p.tipo_entrega === 'entrega' ? 'Entregar' : 'Retirar na loja'}
                       {p.janela ? ` · ${p.janela}` : ''}
                     </div>
                     {p.tipo_entrega === 'entrega' && p.endereco && (
-                      <div className="ad-pedido-end">
+                      <div className="pn-pedido-end">
                         <MapPin size={12} /> {p.endereco}{p.referencia ? ` — ${p.referencia}` : ''}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <ul className="ad-pedido-itens">
+                <ul className="pn-pedido-itens">
                   {(p.order_items || []).map((it) => (
                     <li key={it.id}>
                       <span><b>{it.tipo_venda === 'kg' ? `${it.quantidade_kg} kg` : `${it.quantidade_kg}x`}</b> {it.descricao}</span>
@@ -195,34 +195,34 @@ export default function Pedidos() {
                   ))}
                 </ul>
 
-                {p.observacao && <div className="ad-pedido-obs">“{p.observacao}”</div>}
+                {p.observacao && <div className="pn-pedido-obs">“{p.observacao}”</div>}
 
                 {p.assinatura && (
-                  <div className="ad-pedido-clube">
+                  <div className="pn-pedido-clube">
                     <Repeat size={14} /> Cliente quer repetir{' '}
                     {p.frequencia === 'semanal' ? 'toda semana' : p.frequencia === 'mensal' ? 'todo mês' : 'a cada 15 dias'}
                   </div>
                 )}
 
-                <div className="ad-pedido-totais">
+                <div className="pn-pedido-totais">
                   <span>Produtos {money(p.subtotal)}</span>
                   <span>{Number(p.frete) > 0 ? `Entrega ${money(p.frete)}` : 'Entrega grátis'}</span>
                   <strong>{money(p.total)}</strong>
                 </div>
 
-                <div className="ad-pedido-acoes">
+                <div className="pn-pedido-acoes">
                   {p.status === 'novo' && (
-                    <button className="ad-btn ad-btn-primario" disabled={travado}
+                    <button className="pn-btn pn-btn-primario" disabled={travado}
                       onClick={() => { setPagamento('pix'); setConfirmando(p); }}>
                       <Check size={16} /> Confirmar
                     </button>
                   )}
                   {proximo && (
-                    <button className="ad-btn ad-btn-claro" disabled={travado}
+                    <button className="pn-btn pn-btn-claro" disabled={travado}
                       onClick={() => mudarStatus(p, proximo[0])}>{proximo[1]}</button>
                   )}
                   {p.status !== 'cancelado' && p.status !== 'entregue' && (
-                    <button className="ad-btn ad-btn-perigo" disabled={travado} onClick={() => setCancelando(p)}>
+                    <button className="pn-btn pn-btn-perigo" disabled={travado} onClick={() => setCancelando(p)}>
                       <X size={16} /> Cancelar
                     </button>
                   )}
@@ -234,25 +234,25 @@ export default function Pedidos() {
       )}
 
       {confirmando && (
-        <div className="ad-modal-fundo" onClick={() => setConfirmando(null)}>
-          <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ad-modal-topo">
+        <div className="pn-modal-fundo" onClick={() => setConfirmando(null)}>
+          <div className="pn-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pn-modal-topo">
               <h2>Confirmar pedido #{confirmando.id}</h2>
               <button onClick={() => setConfirmando(null)}><X size={18} /></button>
             </div>
-            <p className="ad-modal-texto">
+            <p className="pn-modal-texto">
               Isso dá baixa no estoque dos itens e marca o pedido como confirmado.
               Só acontece uma vez por pedido.
             </p>
-            <span className="ad-filtro-rotulo">Como o cliente vai pagar?</span>
-            <div className="ad-chips" style={{ marginTop: 8 }}>
+            <span className="pn-filtro-rotulo">Como o cliente vai pagar?</span>
+            <div className="pn-chips" style={{ marginTop: 8 }}>
               {[['dinheiro', 'Dinheiro'], ['pix', 'PIX'], ['cartao', 'Cartão']].map(([v, r]) => (
-                <button key={v} className={`ad-chip ${pagamento === v ? 'ativo' : ''}`} onClick={() => setPagamento(v)}>{r}</button>
+                <button key={v} className={`pn-chip ${pagamento === v ? 'ativo' : ''}`} onClick={() => setPagamento(v)}>{r}</button>
               ))}
             </div>
-            <div className="ad-modal-acoes">
-              <button className="ad-btn ad-btn-claro" onClick={() => setConfirmando(null)}>Voltar</button>
-              <button className="ad-btn ad-btn-primario" disabled={ocupado === confirmando.id} onClick={confirmar}>
+            <div className="pn-modal-acoes">
+              <button className="pn-btn pn-btn-claro" onClick={() => setConfirmando(null)}>Voltar</button>
+              <button className="pn-btn pn-btn-primario" disabled={ocupado === confirmando.id} onClick={confirmar}>
                 {ocupado === confirmando.id ? 'Confirmando…' : 'Confirmar pedido'}
               </button>
             </div>
@@ -261,19 +261,19 @@ export default function Pedidos() {
       )}
 
       {cancelando && (
-        <div className="ad-modal-fundo" onClick={() => setCancelando(null)}>
-          <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ad-modal-topo">
+        <div className="pn-modal-fundo" onClick={() => setCancelando(null)}>
+          <div className="pn-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pn-modal-topo">
               <h2>Cancelar pedido #{cancelando.id}?</h2>
               <button onClick={() => setCancelando(null)}><X size={18} /></button>
             </div>
-            <p className="ad-modal-texto">
+            <p className="pn-modal-texto">
               O cliente não é avisado automaticamente — combine pelo WhatsApp antes.
               {cancelando.baixou_estoque && ' O estoque já baixado não volta sozinho: ajuste na tela de Produtos se precisar.'}
             </p>
-            <div className="ad-modal-acoes">
-              <button className="ad-btn ad-btn-claro" onClick={() => setCancelando(null)}>Voltar</button>
-              <button className="ad-btn ad-btn-perigo" onClick={cancelar}>Cancelar pedido</button>
+            <div className="pn-modal-acoes">
+              <button className="pn-btn pn-btn-claro" onClick={() => setCancelando(null)}>Voltar</button>
+              <button className="pn-btn pn-btn-perigo" onClick={cancelar}>Cancelar pedido</button>
             </div>
           </div>
         </div>
