@@ -31,8 +31,13 @@ export default function Login({ aoEntrar }) {
     try {
       const rota = primeiroAcesso ? '/auth/setup' : '/auth/login';
       const res = await api.post(rota, { nome: nome.trim(), login: login.trim(), senha });
-      localStorage.setItem('cat_token', res.data.token);
-      localStorage.setItem('cat_user', JSON.stringify(res.data.user));
+      try {
+        localStorage.setItem('cat_token', res.data.token);
+        localStorage.setItem('cat_user', JSON.stringify(res.data.user));
+      } catch (_) {
+        // Sem localStorage a sessao nao sobrevive a recarregar a pagina,
+        // mas dentro desta aba o painel funciona igual.
+      }
       aoEntrar(res.data.user);
     } catch (err) {
       setErro(err.response?.data?.error || 'Nao consegui entrar. Tente de novo.');

@@ -22,20 +22,27 @@ const MENU = [
   { sufixo: '/config', rotulo: 'Configurações', icone: Engrenagem },
 ];
 
-export default function Admin({ base = '/painel' }) {
-  const [usuario, setUsuario] = useState(null);
-  const [conferindo, setConferindo] = useState(true);
-  const [menuAberto, setMenuAberto] = useState(false);
-  const [pedidosNovos, setPedidosNovos] = useState(0);
-
-  useEffect(() => {
+/*
+ * Le a sessao guardada. Tudo dentro de try/catch porque o localStorage
+ * lanca excecao quando o navegador bloqueia dados do site - e ai o painel
+ * inteiro morria antes de desenhar qualquer coisa.
+ */
+function lerSessao() {
+  try {
     const guardado = localStorage.getItem('cat_user');
     const token = localStorage.getItem('cat_token');
-    if (guardado && token) {
-      try { setUsuario(JSON.parse(guardado)); } catch (_) { localStorage.removeItem('cat_user'); }
-    }
-    setConferindo(false);
-  }, []);
+    if (guardado && token) return JSON.parse(guardado);
+  } catch (_) { /* sem localStorage: entra como deslogado */ }
+  return null;
+}
+
+export default function Admin({ base = '/painel' }) {
+  // Resolvido na primeira renderizacao, de proposito. Antes isto vivia num
+  // useEffect e o componente devolvia null enquanto isso: se o efeito nao
+  // completasse, a tela ficava vazia para sempre, sem erro nenhum.
+  const [usuario, setUsuario] = useState(lerSessao);
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [pedidosNovos, setPedidosNovos] = useState(0);
 
   // Pedido novo aparece como bolinha no menu, sem precisar recarregar.
   useEffect(() => {
@@ -57,12 +64,12 @@ export default function Admin({ base = '/painel' }) {
   }, []);
 
   function sair() {
-    localStorage.removeItem('cat_token');
-    localStorage.removeItem('cat_user');
+    try {
+      localStorage.removeItem('cat_token');
+      localStorage.removeItem('cat_user');
+    } catch (_) { /* ignora */ }
     setUsuario(null);
   }
-
-  if (conferindo) return null;
 
   if (!usuario) {
     return (
