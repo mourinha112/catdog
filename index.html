@@ -35,6 +35,11 @@
         cursor: pointer; font-family: inherit;
       }
       .booting-lento code { background: #F0F0F0; padding: 1px 5px; border-radius: 4px; font-size: .8rem; }
+      .booting-lento pre {
+        margin-top: 12px; padding: 10px; background: #F5F5F5; border-radius: 8px;
+        font-size: .72rem; line-height: 1.5; color: #5A5A5A; white-space: pre-wrap;
+        word-break: break-word; max-height: 160px; overflow: auto;
+      }
     </style>
   </head>
   <body>
@@ -48,7 +53,7 @@
         <p>Carregando…</p>
 
         <div class="booting-lento" id="booting-lento" hidden>
-          <h2>O aplicativo não carregou</h2>
+          <h2 id="booting-titulo">O aplicativo não carregou</h2>
           <p>
             A página abriu, mas o arquivo do aplicativo não terminou de baixar.
             Quase sempre é alguma coisa na rede deste computador bloqueando:
@@ -65,16 +70,74 @@
             diz exatamente o que foi bloqueado.
           </p>
           <button onclick="location.reload()">Tentar de novo</button>
+          <pre id="booting-erro" hidden></pre>
         </div>
       </div>
     </div>
 
     <script>
-      // Se depois de 7s a mensagem ainda existir, o React nao montou.
-      setTimeout(function () {
-        var aviso = document.getElementById('booting-lento');
-        if (aviso) aviso.hidden = false;
-      }, 7000);
+      /*
+       * Diagnostico na propria tela. Se alguma coisa impedir o app de
+       * montar, o motivo aparece aqui em vez de o usuario ficar olhando
+       * para uma tela parada sem saber o que houve.
+       */
+      (function () {
+        var caixa = document.getElementById('booting-lento');
+        var alvo = document.getElementById('booting-erro');
+
+        function mostrar(titulo, detalhe) {
+          if (!caixa) return;
+          caixa.hidden = false;
+          var t = document.getElementById('booting-titulo');
+          if (t && titulo) t.textContent = titulo;
+          if (alvo && detalhe) {
+            alvo.hidden = false;
+            alvo.textContent = detalhe;
+          }
+        }
+
+        // Erro de sintaxe ou de execucao no bundle
+        window.addEventListener('error', function (e) {
+          var alvoErro = e && e.target;
+          if (alvoErro && alvoErro.tagName === 'SCRIPT') {
+            mostrar('Não consegui baixar o aplicativo',
+              'O arquivo ' + (alvoErro.src || '') + ' não carregou. Costuma ser antivírus, extensão ou a rede bloqueando.');
+            return;
+          }
+          mostrar('O aplicativo travou ao iniciar',
+            (e && e.message ? e.message : 'erro desconhecido')
+            + (e && e.filename ? '
+' + e.filename + ':' + e.lineno : ''));
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (e) {
+          mostrar('O aplicativo travou ao iniciar',
+            'Promessa rejeitada: ' + (e && e.reason ? (e.reason.message || String(e.reason)) : '?'));
+        });
+
+        // Se em 7s a mensagem ainda existir, o React nao montou.
+        setTimeout(function () {
+          if (document.getElementById('booting-lento')) {
+            mostrar(null, 'Navegador: ' + navigator.userAgent
+              + '
+Módulos: ' + ('noModule' in document.createElement('script') ? 'suportados' : 'NÃO suportados')
+              + '
+Tela: ' + window.innerWidth + 'x' + window.innerHeight
+              + '
+Zoom aparente: ' + Math.round((window.outerWidth / window.innerWidth) * 100) / 100);
+          }
+        }, 7000);
+      })();
+    </script>
+
+    <!-- Navegador sem suporte a modulos nem chega a tentar carregar o app -->
+    <script nomodule>
+      document.addEventListener('DOMContentLoaded', function () {
+        var caixa = document.getElementById('booting-lento');
+        var t = document.getElementById('booting-titulo');
+        if (caixa) caixa.hidden = false;
+        if (t) t.textContent = 'Seu navegador está desatualizado';
+      });
     </script>
 
     <script type="module" src="/src/main.jsx"></script>

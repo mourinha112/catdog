@@ -17,5 +17,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    /*
+     * O padrao do Vite gera codigo que so roda em navegador recente. Num
+     * Chrome/Edge um pouco mais velho, o arquivo nem e interpretado: a
+     * pagina abre, o HTML aparece, e o app simplesmente nunca monta - sem
+     * nada quebrar de forma visivel. Baixar o alvo custa alguns kb e
+     * elimina essa classe inteira de problema.
+     */
+    target: ['es2015', 'chrome64', 'edge79', 'firefox67', 'safari12'],
   },
 });
