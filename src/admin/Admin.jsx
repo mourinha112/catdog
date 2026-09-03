@@ -14,14 +14,15 @@ import Pedidos from './Pedidos';
 import Produtos from './Produtos';
 import Config from './Config';
 
+// O endereco base vem do App: pode ser /painel ou /admin.
 const MENU = [
-  { caminho: '/admin', rotulo: 'Painel', icone: LayoutDashboard, exato: true },
-  { caminho: '/admin/pedidos', rotulo: 'Pedidos', icone: ClipboardList },
-  { caminho: '/admin/produtos', rotulo: 'Produtos', icone: Package },
-  { caminho: '/admin/config', rotulo: 'Configurações', icone: Engrenagem },
+  { sufixo: '', rotulo: 'Painel', icone: LayoutDashboard, exato: true },
+  { sufixo: '/pedidos', rotulo: 'Pedidos', icone: ClipboardList },
+  { sufixo: '/produtos', rotulo: 'Produtos', icone: Package },
+  { sufixo: '/config', rotulo: 'Configurações', icone: Engrenagem },
 ];
 
-export default function Admin() {
+export default function Admin({ base = '/painel' }) {
   const [usuario, setUsuario] = useState(null);
   const [conferindo, setConferindo] = useState(true);
   const [menuAberto, setMenuAberto] = useState(false);
@@ -89,14 +90,14 @@ export default function Admin() {
           <nav className="ad-nav" onClick={() => setMenuAberto(false)}>
             {MENU.map((item) => (
               <NavLink
-                key={item.caminho}
-                to={item.caminho}
+                key={item.sufixo}
+                to={base + item.sufixo}
                 end={item.exato}
                 className={({ isActive }) => `ad-link ${isActive ? 'ativo' : ''}`}
               >
                 <span className="ad-link-icone"><item.icone size={19} /></span>
                 <span className="ad-link-texto">{item.rotulo}</span>
-                {item.caminho === '/admin/pedidos' && pedidosNovos > 0 && (
+                {item.sufixo === '/pedidos' && pedidosNovos > 0 && (
                   <span className="ad-link-bolinha">{pedidosNovos}</span>
                 )}
               </NavLink>
@@ -125,11 +126,11 @@ export default function Admin() {
           </button>
 
           <Routes>
-              <Route path="/admin" element={<Painel />} />
-              <Route path="/admin/pedidos" element={<Pedidos />} />
-              <Route path="/admin/produtos" element={<Produtos />} />
-              <Route path="/admin/config" element={<Config usuario={usuario} />} />
-              <Route path="*" element={<Navigate to="/admin" replace />} />
+              <Route path={base} element={<Painel />} />
+              <Route path={base + '/pedidos'} element={<Pedidos />} />
+              <Route path={base + '/produtos'} element={<Produtos />} />
+              <Route path={base + '/config'} element={<Config usuario={usuario} />} />
+              <Route path="*" element={<Navigate to={base} replace />} />
           </Routes>
         </main>
       </div>
