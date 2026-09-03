@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { useLocation } from 'react-router-dom';
+import Erro from './Erro';
 
 /*
  * Duas partes no mesmo deploy:
@@ -18,8 +19,10 @@ export default function App() {
   const noAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
 
   return (
-    <Suspense fallback={null}>
-      {noAdmin ? <Admin /> : <Loja />}
-    </Suspense>
+    <Erro>
+      <Suspense fallback={null}>
+        {noAdmin ? <Admin /> : <Loja />}
+      </Suspense>
+    </Erro>
   );
 }
