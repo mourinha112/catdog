@@ -314,6 +314,8 @@ export default function Loja() {
     const anterior = document.body.style.background;
     document.body.style.background = '#E8E8E8';
     document.body.style.margin = '0';
+    document.body.style.width = '100%';
+    document.body.style.minHeight = '100vh';
     return () => { document.body.style.background = anterior; };
   }, []);
   useEffect(() => { gravarJson(CHAVE_CARRINHO, carrinho); }, [carrinho]);

@@ -133,8 +133,16 @@ cp .env.example .env      # preencha com os dados do Supabase
 npm run dev               # http://localhost:3000
 ```
 
-As funções em `/api` só rodam na Vercel. Para testá-las localmente, use
-`vercel dev` em vez de `npm run dev`.
+O `npm run dev` sobe **duas coisas de uma vez**: o site na porta 3000 e a
+API na 3001 (`api/local.js`), com o Vite mandando `/api` para ela. É o mesmo
+código de `api/index.js` que roda na Vercel — então o que funcionar aqui
+funciona lá.
+
+Se preferir dois terminais: `npm run dev:api` e `npm run dev:web`.
+
+O `.env` precisa das mesmas chaves do Supabase que estão na Vercel. Como ele
+aponta para o **mesmo banco**, o que você cadastrar rodando local já vale em
+produção — dá para configurar tudo daqui.
 
 ---
 

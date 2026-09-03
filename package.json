@@ -5,7 +5,9 @@
   "description": "Catalogo digital com pedidos online e painel administrativo",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite --port 3000",
+    "dev:api": "node api/local.js",
     "build": "vite build",
     "vercel-build": "vite build",
     "preview": "vite preview"

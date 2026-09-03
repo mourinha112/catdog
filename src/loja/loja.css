@@ -5,6 +5,11 @@
    Tudo aqui usa o prefixo .lj- para nao esbarrar no CSS do PDV.
    ===================================================================== */
 
+/* Ver o comentario equivalente no admin.css: o documento precisa ocupar
+   a largura toda por si so, senao encolhe ate o conteudo. */
+html, body, #root { width: 100%; min-width: 100%; }
+#root { display: block; }
+
 .lj-app {
   --lj-vermelho: #111111;
   --lj-vermelho-esc: #000000;
