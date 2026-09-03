@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
-import { Dog, Cat } from '@phosphor-icons/react';
+import { IconeCachorro, IconeGato } from './IconesPet';
 import { combina } from '../lib/busca';
 import './loja.css';
 
@@ -1326,11 +1326,11 @@ export default function Loja() {
           <div className="lj-secao-sub">Escolha e a gente já filtra pra você</div>
           <div className="lj-especies">
             <button className="lj-especie" onClick={() => { setEspecie('cao'); setPerfil('todos'); setPorte('todos'); setTela('catalogo'); }}>
-              <Dog size={54} weight="fill" color="#171717" />
+              <IconeCachorro tamanho={54} />
               <span className="lj-ttl">Cachorro</span>
             </button>
             <button className="lj-especie" onClick={() => { setEspecie('gato'); setPerfil('todos'); setPorte('todos'); setTela('catalogo'); }}>
-              <Cat size={54} weight="fill" color="#171717" />
+              <IconeGato tamanho={54} />
               <span className="lj-ttl">Gato</span>
             </button>
           </div>
