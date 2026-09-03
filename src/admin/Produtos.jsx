@@ -1,0 +1,506 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import api from '../api';
+import { useAviso } from './Aviso';
+import { combina, textoDoProduto } from '../lib/busca';
+import { prepararFoto, enviarFoto } from '../lib/foto';
+import {
+  Plus, Pencil, Trash2, PackagePlus, X, Upload, Search, ImageOff, Eye, EyeOff,
+} from 'lucide-react';
+
+/* Cadastro de produtos do catalogo, com foto. */
+
+const CATEGORIAS = [
+  ['racao', 'Ração'], ['sache', 'Sachê'], ['petisco', 'Petisco'],
+  ['medicamento', 'Medicamento'], ['acessorio', 'Acessório'],
+  ['higiene', 'Higiene'], ['outros', 'Outros'],
+];
+const ESPECIES = [['', 'Não filtra por espécie'], ['cao', 'Cão'], ['gato', 'Gato']];
+const PORTES = [['', 'Serve todos os portes'], ['pequena', 'Raças pequenas'], ['media', 'Porte médio'], ['grande', 'Porte grande']];
+const PERFIS = [['', 'Sem fase definida'], ['filhote', 'Filhote'], ['adulto', 'Adulto'], ['castrado', 'Castrado'], ['senior', 'Sênior']];
+
+const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const money = (v) => brl.format(Number(v) || 0);
+
+const VAZIO = {
+  nome: '', marca: '', categoria: 'racao', descricao: '',
+  especie: '', porte: '', perfil: '', foto_url: '',
+  visivel_loja: true, vende_fracionado: true,
+  peso_saco_kg: '', preco_saco_fechado: '', preco_por_kg: '', preco_unitario: '', custo: '',
+  estoque_kg: '', estoque_unidade: '', estoque_minimo: '',
+};
+
+const ehRacao = (c) => !c || c === 'racao';
+
+export default function Produtos() {
+  const aviso = useAviso();
+  const [produtos, setProdutos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [busca, setBusca] = useState('');
+  const [soSemFoto, setSoSemFoto] = useState(false);
+
+  const [form, setForm] = useState(VAZIO);
+  const [editandoId, setEditandoId] = useState(null);
+  const [aberto, setAberto] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [enviandoFoto, setEnviandoFoto] = useState(false);
+
+  const [estoqueDe, setEstoqueDe] = useState(null);
+  const [entrada, setEntrada] = useState({ kg: '', un: '', motivo: 'Reposição' });
+  const [apagando, setApagando] = useState(null);
+
+  const fotoRef = useRef(null);
+
+  useEffect(() => { carregar(); }, []);
+
+  async function carregar() {
+    try {
+      const res = await api.get('/admin/products');
+      setProdutos(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      aviso.erro('Erro ao carregar os produtos');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  const lista = useMemo(() => produtos.filter((p) => {
+    if (soSemFoto && p.foto_url) return false;
+    if (busca && !combina(textoDoProduto(p), busca)) return false;
+    return true;
+  }), [produtos, busca, soSemFoto]);
+
+  function mudar(e) {
+    const { name, type, value, checked } = e.target;
+    setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
+  }
+
+  function abrirNovo() {
+    setForm(VAZIO); setEditandoId(null); setAberto(true);
+  }
+
+  function abrirEdicao(p) {
+    setForm({
+      nome: p.nome || '', marca: p.marca || '', categoria: p.categoria || 'racao',
+      descricao: p.descricao || '', especie: p.especie || '', porte: p.porte || '',
+      perfil: p.perfil || '', foto_url: p.foto_url || '',
+      visivel_loja: p.visivel_loja !== false, vende_fracionado: p.vende_fracionado !== false,
+      peso_saco_kg: p.peso_saco_kg ?? '', preco_saco_fechado: p.preco_saco_fechado ?? '',
+      preco_por_kg: p.preco_por_kg ?? '', preco_unitario: p.preco_unitario ?? '',
+      custo: p.custo ?? '', estoque_kg: p.estoque_kg ?? '', estoque_unidade: p.estoque_unidade ?? '',
+      estoque_minimo: p.estoque_minimo ?? '',
+    });
+    setEditandoId(p.id);
+    setAberto(true);
+  }
+
+  async function enviarFotoDoProduto(e) {
+    const arquivo = e.target.files?.[0];
+    if (e.target) e.target.value = '';
+    if (!arquivo) return;
+    if (!arquivo.type.startsWith('image/')) { aviso.erro('Isso não é uma imagem'); return; }
+
+    setEnviandoFoto(true);
+    try {
+      const { blob, transparente } = await prepararFoto(arquivo, true);
+      const base = editandoId ? `produto-${editandoId}` : `novo-${Date.now()}`;
+      const url = await enviarFoto(base, blob, transparente);
+      setForm((f) => ({ ...f, foto_url: url }));
+      aviso.sucesso('Foto pronta. Salve o produto para valer.');
+    } catch (err) {
+      aviso.erro(err.message || 'Não consegui enviar a foto');
+    } finally {
+      setEnviandoFoto(false);
+    }
+  }
+
+  async function salvar(e) {
+    e.preventDefault();
+    if (!form.nome.trim()) { aviso.erro('Informe o nome do produto'); return; }
+
+    const racao = ehRacao(form.categoria);
+    const n = (v) => parseFloat(String(v).replace(',', '.')) || 0;
+
+    if (racao && n(form.preco_por_kg) <= 0 && n(form.preco_saco_fechado) <= 0) {
+      aviso.erro('Informe o preço por kg ou o preço do saco fechado');
+      return;
+    }
+    if (!racao && n(form.preco_unitario) <= 0) {
+      aviso.erro('Informe o preço unitário');
+      return;
+    }
+
+    const dados = {
+      nome: form.nome.trim(),
+      marca: form.marca.trim(),
+      categoria: form.categoria,
+      descricao: form.descricao.trim() || null,
+      especie: form.especie || null,
+      porte: form.porte || null,
+      perfil: form.perfil || null,
+      foto_url: form.foto_url.trim() || null,
+      visivel_loja: !!form.visivel_loja,
+      vende_fracionado: racao ? !!form.vende_fracionado : false,
+      peso_saco_kg: racao ? n(form.peso_saco_kg) : 0,
+      preco_saco_fechado: racao ? n(form.preco_saco_fechado) : 0,
+      preco_por_kg: racao ? n(form.preco_por_kg) : 0,
+      preco_unitario: racao ? 0 : n(form.preco_unitario),
+      custo: n(form.custo),
+      estoque_minimo: n(form.estoque_minimo),
+    };
+
+    // Estoque so entra no cadastro; depois muda pela entrada de estoque,
+    // que deixa historico.
+    if (!editandoId) {
+      dados.estoque_kg = racao ? n(form.estoque_kg) : 0;
+      dados.estoque_unidade = racao ? 0 : Math.round(n(form.estoque_unidade));
+    }
+
+    setSalvando(true);
+    try {
+      if (editandoId) await api.put(`/admin/products/${editandoId}`, dados);
+      else await api.post('/admin/products', dados);
+      aviso.sucesso(editandoId ? 'Produto atualizado' : 'Produto cadastrado');
+      setAberto(false);
+      carregar();
+    } catch (err) {
+      aviso.erro(err.response?.data?.error || 'Não consegui salvar');
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function darEntrada(e) {
+    e.preventDefault();
+    const kg = parseFloat(String(entrada.kg).replace(',', '.')) || 0;
+    const un = parseInt(entrada.un, 10) || 0;
+    if (kg <= 0 && un <= 0) { aviso.erro('Informe a quantidade'); return; }
+    try {
+      await api.post(`/admin/products/${estoqueDe.id}/estoque`, {
+        quantidade_kg: kg, quantidade_un: un, motivo: entrada.motivo,
+      });
+      aviso.sucesso('Estoque atualizado');
+      setEstoqueDe(null);
+      setEntrada({ kg: '', un: '', motivo: 'Reposição' });
+      carregar();
+    } catch (err) {
+      aviso.erro(err.response?.data?.error || 'Não consegui atualizar');
+    }
+  }
+
+  async function apagar() {
+    try {
+      await api.delete(`/admin/products/${apagando.id}`);
+      aviso.sucesso('Produto removido do catálogo');
+      setApagando(null);
+      carregar();
+    } catch (err) {
+      aviso.erro('Não consegui remover');
+    }
+  }
+
+  const racaoNoForm = ehRacao(form.categoria);
+  const semFoto = produtos.filter((p) => !p.foto_url).length;
+
+  return (
+    <div className="ad-pagina">
+      <header className="ad-cabecalho">
+        <h1>Produtos</h1>
+        <button className="ad-btn ad-btn-primario" onClick={abrirNovo}>
+          <Plus size={17} /> Novo produto
+        </button>
+      </header>
+
+      <div className="ad-barra-busca">
+        <div className="ad-busca">
+          <Search size={17} />
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou marca…" />
+        </div>
+        <label className="ad-marcador">
+          <input type="checkbox" checked={soSemFoto} onChange={(e) => setSoSemFoto(e.target.checked)} />
+          <span>Só sem foto {semFoto > 0 && `(${semFoto})`}</span>
+        </label>
+      </div>
+
+      {carregando ? (
+        <div className="ad-carregando">Carregando…</div>
+      ) : lista.length === 0 ? (
+        <div className="ad-vazio">
+          {produtos.length === 0 ? 'Nenhum produto cadastrado ainda. Comece pelo botão “Novo produto”.' : 'Nada encontrado com esse filtro.'}
+        </div>
+      ) : (
+        <div className="ad-grade">
+          {lista.map((p) => (
+            <article className="ad-produto" key={p.id}>
+              <div className="ad-produto-foto">
+                {p.foto_url ? <img src={p.foto_url} alt="" loading="lazy" /> : <ImageOff size={26} />}
+                <span className={`ad-produto-visivel ${p.visivel_loja === false ? 'oculto' : ''}`}
+                  title={p.visivel_loja === false ? 'Escondido do catálogo' : 'Aparece no catálogo'}>
+                  {p.visivel_loja === false ? <EyeOff size={13} /> : <Eye size={13} />}
+                </span>
+              </div>
+
+              <div className="ad-produto-corpo">
+                <div className="ad-produto-marca">{p.marca || 'sem marca'}</div>
+                <div className="ad-produto-nome">{p.nome}</div>
+                <div className="ad-produto-preco">
+                  {ehRacao(p.categoria) ? (
+                    <>
+                      {Number(p.preco_saco_fechado) > 0 && <span>{money(p.preco_saco_fechado)} o saco</span>}
+                      {Number(p.preco_por_kg) > 0 && <span>{money(p.preco_por_kg)}/kg</span>}
+                    </>
+                  ) : (
+                    <span>{money(p.preco_unitario)}</span>
+                  )}
+                </div>
+                <div className={`ad-produto-estoque ${(Number(p.estoque_kg) > 0 || Number(p.estoque_unidade) > 0) ? '' : 'zerado'}`}>
+                  {Number(p.estoque_kg) > 0 ? `${p.estoque_kg} kg`
+                    : Number(p.estoque_unidade) > 0 ? `${p.estoque_unidade} un` : 'sem estoque'}
+                </div>
+              </div>
+
+              <div className="ad-produto-acoes">
+                <button className="ad-btn ad-btn-claro ad-btn-mini" onClick={() => abrirEdicao(p)} title="Editar">
+                  <Pencil size={15} />
+                </button>
+                <button className="ad-btn ad-btn-claro ad-btn-mini" onClick={() => setEstoqueDe(p)} title="Entrada de estoque">
+                  <PackagePlus size={15} />
+                </button>
+                <button className="ad-btn ad-btn-perigo ad-btn-mini" onClick={() => setApagando(p)} title="Remover">
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {/* ---------------- cadastro / edicao ---------------- */}
+      {aberto && (
+        <div className="ad-modal-fundo" onClick={() => setAberto(false)}>
+          <form className="ad-modal ad-modal-largo" onClick={(e) => e.stopPropagation()} onSubmit={salvar}>
+            <div className="ad-modal-topo">
+              <h2>{editandoId ? 'Editar produto' : 'Novo produto'}</h2>
+              <button type="button" onClick={() => setAberto(false)}><X size={18} /></button>
+            </div>
+
+            <div className="ad-modal-corpo">
+              <div className="ad-foto-campo">
+                <div className="ad-foto-quadro">
+                  {form.foto_url
+                    ? <img src={form.foto_url} alt="" onError={(e) => { e.currentTarget.style.opacity = 0.2; }} />
+                    : <ImageOff size={26} />}
+                </div>
+                <div className="ad-foto-lado">
+                  <div className="ad-foto-botoes">
+                    <button type="button" className="ad-btn ad-btn-claro" disabled={enviandoFoto}
+                      onClick={() => fotoRef.current?.click()}>
+                      <Upload size={15} /> {enviandoFoto ? 'Enviando…' : 'Enviar foto'}
+                    </button>
+                    {form.foto_url && (
+                      <button type="button" className="ad-btn ad-btn-perigo ad-btn-mini"
+                        onClick={() => setForm((f) => ({ ...f, foto_url: '' }))}>
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </div>
+                  <input name="foto_url" value={form.foto_url} onChange={mudar} placeholder="ou cole um link https://…" />
+                  <small>Encolhe, centraliza e tira o fundo sozinho quando o fundo é liso.</small>
+                </div>
+                <input ref={fotoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={enviarFotoDoProduto} />
+              </div>
+
+              <div className="ad-linha">
+                <label className="ad-campo">
+                  <span>Nome *</span>
+                  <input name="nome" value={form.nome} onChange={mudar} placeholder="Ex: Fórmula Filhotes Frango" required />
+                </label>
+                <label className="ad-campo">
+                  <span>Marca</span>
+                  <input name="marca" value={form.marca} onChange={mudar} placeholder="Ex: Golden" />
+                </label>
+              </div>
+
+              <div className="ad-linha">
+                <label className="ad-campo">
+                  <span>Categoria</span>
+                  <select name="categoria" value={form.categoria} onChange={mudar}>
+                    {CATEGORIAS.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+                  </select>
+                </label>
+                <label className="ad-campo">
+                  <span>Custo (opcional)</span>
+                  <input name="custo" value={form.custo} onChange={mudar} placeholder="0,00" inputMode="decimal" />
+                </label>
+              </div>
+
+              <label className="ad-campo">
+                <span>Descrição (opcional)</span>
+                <textarea name="descricao" value={form.descricao} onChange={mudar} rows={2}
+                  placeholder="Uma linha que ajude o cliente a escolher" />
+              </label>
+
+              <div className="ad-divisor"><span>Preço e estoque</span></div>
+
+              {racaoNoForm ? (
+                <>
+                  <div className="ad-linha">
+                    <label className="ad-campo">
+                      <span>Peso do saco (kg)</span>
+                      <input name="peso_saco_kg" value={form.peso_saco_kg} onChange={mudar} placeholder="15" inputMode="decimal" />
+                    </label>
+                    <label className="ad-campo">
+                      <span>Preço do saco fechado</span>
+                      <input name="preco_saco_fechado" value={form.preco_saco_fechado} onChange={mudar} placeholder="229,90" inputMode="decimal" />
+                    </label>
+                    <label className="ad-campo">
+                      <span>Preço por kg</span>
+                      <input name="preco_por_kg" value={form.preco_por_kg} onChange={mudar} placeholder="17,50" inputMode="decimal" />
+                    </label>
+                  </div>
+                  <div className="ad-linha">
+                    {!editandoId && (
+                      <label className="ad-campo">
+                        <span>Estoque inicial (kg)</span>
+                        <input name="estoque_kg" value={form.estoque_kg} onChange={mudar} placeholder="0" inputMode="decimal" />
+                      </label>
+                    )}
+                    <label className="ad-campo">
+                      <span>Avisar quando ficar abaixo de (kg)</span>
+                      <input name="estoque_minimo" value={form.estoque_minimo} onChange={mudar} placeholder="0" inputMode="decimal" />
+                    </label>
+                  </div>
+                  <label className="ad-marcador">
+                    <input type="checkbox" name="vende_fracionado" checked={!!form.vende_fracionado} onChange={mudar} />
+                    <span>Pode ser vendido fracionado por kg</span>
+                  </label>
+                </>
+              ) : (
+                <div className="ad-linha">
+                  <label className="ad-campo">
+                    <span>Preço unitário *</span>
+                    <input name="preco_unitario" value={form.preco_unitario} onChange={mudar} placeholder="18,90" inputMode="decimal" />
+                  </label>
+                  {!editandoId && (
+                    <label className="ad-campo">
+                      <span>Estoque inicial (unidades)</span>
+                      <input name="estoque_unidade" value={form.estoque_unidade} onChange={mudar} placeholder="0" inputMode="numeric" />
+                    </label>
+                  )}
+                  <label className="ad-campo">
+                    <span>Avisar abaixo de (un)</span>
+                    <input name="estoque_minimo" value={form.estoque_minimo} onChange={mudar} placeholder="0" inputMode="numeric" />
+                  </label>
+                </div>
+              )}
+
+              {editandoId && (
+                <p className="ad-dica">
+                  O estoque não se edita aqui: use a <strong>entrada de estoque</strong> na lista,
+                  que guarda o histórico do que entrou.
+                </p>
+              )}
+
+              <div className="ad-divisor"><span>Como aparece no catálogo</span></div>
+
+              <label className="ad-marcador">
+                <input type="checkbox" name="visivel_loja" checked={!!form.visivel_loja} onChange={mudar} />
+                <span>Aparece no catálogo para o cliente</span>
+              </label>
+
+              <div className="ad-linha">
+                <label className="ad-campo">
+                  <span>Espécie</span>
+                  <select name="especie" value={form.especie} onChange={mudar}>
+                    {ESPECIES.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+                  </select>
+                </label>
+                <label className="ad-campo">
+                  <span>Fase / condição</span>
+                  <select name="perfil" value={form.perfil} onChange={mudar}>
+                    {PERFIS.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+                  </select>
+                </label>
+                {form.especie === 'cao' && (
+                  <label className="ad-campo">
+                    <span>Porte do cão</span>
+                    <select name="porte" value={form.porte} onChange={mudar}>
+                      {PORTES.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+                    </select>
+                  </label>
+                )}
+              </div>
+              <p className="ad-dica">
+                Esses três campos são o que faz os filtros do catálogo e os recortes do
+                painel funcionarem. Vale preencher pelo menos nos produtos que mais vendem.
+              </p>
+            </div>
+
+            <div className="ad-modal-acoes">
+              <button type="button" className="ad-btn ad-btn-claro" onClick={() => setAberto(false)}>Cancelar</button>
+              <button type="submit" className="ad-btn ad-btn-primario" disabled={salvando}>
+                {salvando ? 'Salvando…' : editandoId ? 'Salvar' : 'Cadastrar'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ---------------- entrada de estoque ---------------- */}
+      {estoqueDe && (
+        <div className="ad-modal-fundo" onClick={() => setEstoqueDe(null)}>
+          <form className="ad-modal" onClick={(e) => e.stopPropagation()} onSubmit={darEntrada}>
+            <div className="ad-modal-topo">
+              <h2>Entrada de estoque</h2>
+              <button type="button" onClick={() => setEstoqueDe(null)}><X size={18} /></button>
+            </div>
+            <p className="ad-modal-texto">
+              <strong>{estoqueDe.marca} {estoqueDe.nome}</strong><br />
+              Hoje: {Number(estoqueDe.estoque_kg) > 0 ? `${estoqueDe.estoque_kg} kg` : `${estoqueDe.estoque_unidade} un`}
+            </p>
+            {ehRacao(estoqueDe.categoria) ? (
+              <label className="ad-campo">
+                <span>Quantos kg entraram?</span>
+                <input value={entrada.kg} onChange={(e) => setEntrada({ ...entrada, kg: e.target.value })}
+                  placeholder="Ex: 45" inputMode="decimal" autoFocus />
+              </label>
+            ) : (
+              <label className="ad-campo">
+                <span>Quantas unidades entraram?</span>
+                <input value={entrada.un} onChange={(e) => setEntrada({ ...entrada, un: e.target.value })}
+                  placeholder="Ex: 12" inputMode="numeric" autoFocus />
+              </label>
+            )}
+            <label className="ad-campo">
+              <span>Motivo</span>
+              <input value={entrada.motivo} onChange={(e) => setEntrada({ ...entrada, motivo: e.target.value })} />
+            </label>
+            <div className="ad-modal-acoes">
+              <button type="button" className="ad-btn ad-btn-claro" onClick={() => setEstoqueDe(null)}>Cancelar</button>
+              <button type="submit" className="ad-btn ad-btn-primario">Lançar entrada</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ---------------- remocao ---------------- */}
+      {apagando && (
+        <div className="ad-modal-fundo" onClick={() => setApagando(null)}>
+          <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ad-modal-topo">
+              <h2>Remover do catálogo?</h2>
+              <button onClick={() => setApagando(null)}><X size={18} /></button>
+            </div>
+            <p className="ad-modal-texto">
+              <strong>{apagando.marca} {apagando.nome}</strong> some do catálogo e do cadastro.
+              Os pedidos antigos que tinham esse produto continuam intactos.
+            </p>
+            <div className="ad-modal-acoes">
+              <button className="ad-btn ad-btn-claro" onClick={() => setApagando(null)}>Voltar</button>
+              <button className="ad-btn ad-btn-perigo" onClick={apagar}>Remover</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
