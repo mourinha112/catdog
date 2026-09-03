@@ -25,5 +25,22 @@ export default defineConfig({
      * elimina essa classe inteira de problema.
      */
     target: ['es2015', 'chrome64', 'edge79', 'firefox67', 'safari12'],
+    rollupOptions: {
+      output: {
+        /*
+         * Nome de arquivo so com hash, sem palavra nenhuma.
+         *
+         * O padrao do Vite nomeia o pedaco do painel como "Admin-xxxx.js".
+         * Antivirus, extensao de bloqueio e filtro de rede corporativa
+         * costumam barrar URL que contenha "admin" - e o sintoma e
+         * exatamente o que aconteceu aqui: o catalogo abre normal e o
+         * painel fica parado para sempre, porque o arquivo dele nunca
+         * chega e a requisicao nem falha, so pendura.
+         */
+        chunkFileNames: 'assets/[hash].js',
+        entryFileNames: 'assets/[hash].js',
+        assetFileNames: 'assets/[hash][extname]',
+      },
+    },
   },
 });
