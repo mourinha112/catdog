@@ -49,6 +49,9 @@ export default function Admin() {
 
   useEffect(() => {
     document.body.classList.add('ad-body');
+    // Ver o comentario no topo do admin.css: garante que nada de fora
+    // tire o body do fluxo e faca a pagina sumir no desktop.
+    document.body.style.setProperty('position', 'static', 'important');
     return () => document.body.classList.remove('ad-body');
   }, []);
 

@@ -316,6 +316,7 @@ export default function Loja() {
     document.body.style.margin = '0';
     document.body.style.width = '100%';
     document.body.style.minHeight = '100vh';
+    document.body.style.setProperty('position', 'static', 'important');
     return () => { document.body.style.background = anterior; };
   }, []);
   useEffect(() => { gravarJson(CHAVE_CARRINHO, carrinho); }, [carrinho]);

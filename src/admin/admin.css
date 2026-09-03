@@ -8,8 +8,28 @@
  * alguma coisa de fora (extensao, tema, script injetado) mexer no
  * documento, ele encolhe ate o tamanho do conteudo e a tela parece vazia.
  */
-html, body, #root { width: 100%; min-width: 100%; }
-#root { display: block; min-height: 100vh; }
+/*
+ * Blindagem do documento.
+ *
+ * Vi na pratica uma pagina em branco no desktop cujo motivo era o <body>
+ * ficar com position:absolute (nao vem daqui: nenhum arquivo deste projeto
+ * escreve isso). Com o body fora do fluxo, o <html> fica com altura zero e
+ * o body encolhe ate a largura do conteudo - uns 430px, que por acaso e a
+ * largura de um celular. Por isso quebrava so no computador.
+ *
+ * O !important existe justamente para vencer o que quer que esteja
+ * mexendo no documento de fora. Body em static e largura cheia e o
+ * comportamento normal, entao forcar isso nao tira nada de ninguem.
+ */
+html, body {
+  position: static !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  float: none !important;
+  min-height: 100vh;
+}
+#root { display: block; width: 100%; }
 
 .ad-body {
   margin: 0;
